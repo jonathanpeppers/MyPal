@@ -26,13 +26,13 @@ public class MyPalWebClient
         _audio = _client.GetAudioClient("icrtts-hd");
     }
 
-    public async Task<string> SendVideoAsync(string filePath)
+    public async Task<string> SendImageAsync(string filePath)
     {
         using var stream = File.OpenRead(filePath);
-        return await SendVideoAsync(stream);
+        return await SendImageAsync(stream);
     }
 
-    public async Task<string> SendVideoAsync(Stream stream)
+    public async Task<string> SendImageAsync(Stream stream)
     {
         var data = await BinaryData.FromStreamAsync(stream);
         var result = await _chat.CompleteChatAsync([

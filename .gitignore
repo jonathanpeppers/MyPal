@@ -399,3 +399,4 @@ FodyWeavers.xsd
 
 # Will contain API keys
 launchSettings.json
+secrets.txt

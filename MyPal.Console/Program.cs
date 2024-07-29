@@ -2,7 +2,7 @@
 using NetCoreAudio;
 
 var client = new MyPalWebClient();
-var response = await client.SendVideoAsync(@"D:\src\MyPal\assets\test.jpg");
+var response = await client.SendImageAsync(@"D:\src\MyPal\assets\test.jpg");
 Console.WriteLine(response);
 
 var stream = await client.TextToSpeechAsync(response, "Fable");
