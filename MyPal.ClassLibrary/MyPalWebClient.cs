@@ -37,7 +37,7 @@ public class MyPalWebClient
 
     public async Task<Stream> TextToSpeech(string text)
     {
-        var result = await _audio.GenerateSpeechFromTextAsync(text, GeneratedSpeechVoice.Nova, new SpeechGenerationOptions { ResponseFormat = GeneratedSpeechFormat.Wav });
+        var result = await _audio.GenerateSpeechFromTextAsync(text, GeneratedSpeechVoice.Nova, new SpeechGenerationOptions { ResponseFormat = GeneratedSpeechFormat.Mp3 });
         return result.Value.ToStream();
     }
 }
