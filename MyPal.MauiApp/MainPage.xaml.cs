@@ -44,11 +44,19 @@ public partial class MainPage : ContentPage
     async void OnMediaCaptured(object sender, MediaCapturedEventArgs e)
     {
         var result = await client.SendImageAsync(e.Media);
-        Dispatcher.Dispatch(() =>
+        Console.WriteLine(result);
+
+        var stream = await client.TextToSpeechAsync(result, "Fable");
+
+        await Dispatcher.DispatchAsync(async () =>
         {
             _indicator.IsRunning = false;
             _button.IsEnabled = true;
-            DisplayAlert("Result", result, "OK");
+#if ANDROID
+            await Sound.Play(stream);
+#else
+            await DisplayAlert("Result", result, "OK");
+#endif
         });
     }
 
