@@ -2,10 +2,10 @@
 using NetCoreAudio;
 
 var client = new MyPalWebClient();
-var response = await client.SendImage("https://m.media-amazon.com/images/I/A1UZj5ww2YL._SY450_CR112%2C0%2C450%2C450_.jpg");
+var response = await client.SendVideoAsync(@"D:\src\MyPal\assets\test.mov");
 Console.WriteLine(response);
 
-var stream = await client.TextToSpeech(response, "Fable");
+var stream = await client.TextToSpeechAsync(response, "Fable");
 var path = @"D:\Downloads\MyPal.mp3";
 using (var fileStream = File.Create(path))
 {

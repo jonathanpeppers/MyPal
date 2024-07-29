@@ -26,11 +26,18 @@ public class MyPalWebClient
         _audio = _client.GetAudioClient("icrtts-hd");
     }
 
-    public async Task<string> SendImage(string url)
+    public async Task<string> SendVideoAsync(string filePath)
     {
+        using var stream = File.OpenRead(@"D:\src\MyPal\assets\test.jpg");
+        return await SendVideoAsync(stream);
+    }
+
+    public async Task<string> SendVideoAsync(Stream stream)
+    {
+        var data = await BinaryData.FromStreamAsync(stream);
         var result = await _chat.CompleteChatAsync([
-            new SystemChatMessage("You are a funny character that enjoys insulting your friends in a very fun way. All insults are kid-friendly, insult the photo appropriately:"),
-            new UserChatMessage(ChatMessageContentPart.CreateImageMessageContentPart(new Uri(url))),
+            new SystemChatMessage("You are a funny character that enjoys insulting your friends in a very fun way. All insults are kid-friendly, insult the photo appropriately using details as much as possible:"),
+            new UserChatMessage(ChatMessageContentPart.CreateImageMessageContentPart(data, "image/jpg", ImageChatMessageContentPartDetail.Auto)),
         ]);
         return result.Value.Content[0].ToString();
     }
@@ -40,7 +47,7 @@ public class MyPalWebClient
         return Enum.GetNames<GeneratedSpeechVoice>();
     }
 
-    public async Task<Stream> TextToSpeech(string text, string voice)
+    public async Task<Stream> TextToSpeechAsync(string text, string voice)
     {
         var result = await _audio.GenerateSpeechFromTextAsync(text, Enum.Parse<GeneratedSpeechVoice>(voice), new SpeechGenerationOptions { ResponseFormat = GeneratedSpeechFormat.Mp3 });
         return result.Value.ToStream();
