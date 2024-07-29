@@ -19,10 +19,10 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Display name -->
-		<ApplicationTitle>MyPal.MauiApp</ApplicationTitle>
+		<ApplicationTitle>My Pal</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.mypal.mauiapp</ApplicationId>
+		<ApplicationId>com.jonathanpeppers.mypal</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
