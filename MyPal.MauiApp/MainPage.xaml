@@ -6,10 +6,10 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40" />
+            <RowDefinition Height="60" />
             <RowDefinition />
         </Grid.RowDefinitions>
-        <Button Text="Insult Me" Clicked="Button_Clicked" />
+        <Button x:Name="_button" Text="Insult Me" Clicked="Button_Clicked" />
         <toolkit:CameraView
             x:Name="_camera"
             Grid.Row="1"
@@ -17,6 +17,7 @@
             MediaCaptured="OnMediaCaptured"
             MediaCaptureFailed="OnMediaCaptureFailed"
         />
+        <ActivityIndicator x:Name="_indicator" Grid.Row="1" IsRunning="False" />
     </Grid>
 
 </ContentPage>

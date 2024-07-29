@@ -44,19 +44,21 @@ public partial class MainPage : ContentPage
     async void OnMediaCaptured(object sender, MediaCapturedEventArgs e)
     {
         var result = await client.SendImageAsync(e.Media);
-        Dispatcher.Dispatch(() => DisplayAlert("Result", result, "OK"));
+        Dispatcher.Dispatch(() =>
+        {
+            _indicator.IsRunning = false;
+            _button.IsEnabled = true;
+            DisplayAlert("Result", result, "OK");
+        });
     }
 
     void OnMediaCaptureFailed(object sender, MediaCaptureFailedEventArgs e) =>
         DisplayAlert("Oops!", "Failed to capture image", "OK");
 
-    async void Button_Clicked(object sender, EventArgs e)
+    void Button_Clicked(object sender, EventArgs e)
     {
-        if (sender is Button button)
-        {
-            button.IsEnabled = false;
-            await _camera.CaptureImage(source.Token);
-            button.IsEnabled = false;
-        }
+        _indicator.IsRunning = true;
+        _button.IsEnabled = false;
+        _ = _camera.CaptureImage(source.Token);
     }
 }
