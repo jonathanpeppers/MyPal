@@ -28,7 +28,7 @@ public class MyPalWebClient
 
     public async Task<string> SendVideoAsync(string filePath)
     {
-        using var stream = File.OpenRead(@"D:\src\MyPal\assets\test.jpg");
+        using var stream = File.OpenRead(filePath);
         return await SendVideoAsync(stream);
     }
 
