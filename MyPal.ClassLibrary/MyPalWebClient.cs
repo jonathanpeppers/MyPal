@@ -1,4 +1,5 @@
 ﻿using Azure.AI.OpenAI;
+using OpenAI.Audio;
 using OpenAI.Chat;
 using System.ClientModel;
 
@@ -8,6 +9,7 @@ public class MyPalWebClient
 {
     readonly AzureOpenAIClient _client;
     readonly ChatClient _chat;
+    readonly AudioClient _audio;
 
     public MyPalWebClient(string apiKey = "")
     {
@@ -21,6 +23,7 @@ public class MyPalWebClient
         }
         _client = new AzureOpenAIClient(new Uri("https://icropenaiservice2.openai.azure.com/"), new ApiKeyCredential(apiKey));
         _chat = _client.GetChatClient("icrgpt-4o");
+        _audio = _client.GetAudioClient("icrtts-hd");
     }
 
     public async Task<string> SendImage(string url)
@@ -30,5 +33,11 @@ public class MyPalWebClient
             new UserChatMessage(ChatMessageContentPart.CreateImageMessageContentPart(new Uri(url))),
         ]);
         return result.Value.Content[0].ToString();
+    }
+
+    public async Task<Stream> TextToSpeech(string text)
+    {
+        var result = await _audio.GenerateSpeechFromTextAsync(text, GeneratedSpeechVoice.Nova, new SpeechGenerationOptions { ResponseFormat = GeneratedSpeechFormat.Wav });
+        return result.Value.ToStream();
     }
 }
