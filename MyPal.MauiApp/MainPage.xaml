@@ -5,7 +5,7 @@
              x:Class="MyPal.MauiApp.MainPage">
 
     <Grid x:Name="_grid">
-        <toolkit:CameraView ImageCaptureResolution="320,480" />
+        <toolkit:CameraView x:Name="_camera" ImageCaptureResolution="320,480" />
     </Grid>
 
 </ContentPage>
