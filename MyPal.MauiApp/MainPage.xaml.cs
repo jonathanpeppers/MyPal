@@ -1,25 +1,53 @@
-﻿namespace MyPal.MauiApp
+﻿#if WINDOWS
+using Windows.Media.Capture;
+using Windows.Media.MediaProperties;
+using Windows.Storage.Streams;
+#endif
+
+namespace MyPal.MauiApp;
+
+public partial class MainPage : ContentPage
 {
-    public partial class MainPage : ContentPage
+    readonly CancellationTokenSource source = new();
+#if WINDOWS
+    MediaCapture? capture;
+    ImageEncodingProperties encoding = ImageEncodingProperties.CreateJpeg();
+#endif
+
+    public MainPage()
     {
-        int count = 0;
-
-        public MainPage()
-        {
-            InitializeComponent();
-        }
-
-        private void OnCounterClicked(object sender, EventArgs e)
-        {
-            count++;
-
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
-        }
+        InitializeComponent();
     }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        Initialize();
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+
+        source.Cancel();
+    }
+
+    async void Initialize()
+    {
+#if WINDOWS
+        capture = new MediaCapture();
+        await capture.InitializeAsync();
+
+        while (!source.IsCancellationRequested)
+        {
+            var stream = new InMemoryRandomAccessStream();
+            await capture.CapturePhotoToStreamAsync(encoding, stream);
+            stream.Seek(0);
+            _image.Source = ImageSource.FromStream(() => stream.AsStream());
+        }
+#else
+        await Task.Yield();
+#endif
+    }
 }
