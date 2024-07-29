@@ -35,9 +35,14 @@ public class MyPalWebClient
         return result.Value.Content[0].ToString();
     }
 
-    public async Task<Stream> TextToSpeech(string text)
+    public string[] GetVoices()
     {
-        var result = await _audio.GenerateSpeechFromTextAsync(text, GeneratedSpeechVoice.Nova, new SpeechGenerationOptions { ResponseFormat = GeneratedSpeechFormat.Mp3 });
+        return Enum.GetNames<GeneratedSpeechVoice>();
+    }
+
+    public async Task<Stream> TextToSpeech(string text, string voice)
+    {
+        var result = await _audio.GenerateSpeechFromTextAsync(text, Enum.Parse<GeneratedSpeechVoice>(voice), new SpeechGenerationOptions { ResponseFormat = GeneratedSpeechFormat.Mp3 });
         return result.Value.ToStream();
     }
 }
