@@ -43,6 +43,7 @@ public partial class MainPage : ContentPage
 
     async void OnMediaCaptured(object sender, MediaCapturedEventArgs e)
     {
+        Dispatcher.Dispatch(_camera.StopCameraPreview);
         var result = await client.SendImageAsync(e.Media);
         Console.WriteLine(result);
 
@@ -52,6 +53,7 @@ public partial class MainPage : ContentPage
         {
             _indicator.IsRunning = false;
             _button.IsEnabled = true;
+            await _camera.StartCameraPreview(source.Token);
 #if ANDROID
             await Sound.Play(stream);
 #else
@@ -66,6 +68,7 @@ public partial class MainPage : ContentPage
             _indicator.IsRunning = false;
             _button.IsEnabled = true;
             await DisplayAlert("Oops!", "Failed to capture image", "OK");
+            await _camera.StartCameraPreview(source.Token);
         });
 
     void Button_Clicked(object sender, EventArgs e)
