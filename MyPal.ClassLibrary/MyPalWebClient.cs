@@ -11,7 +11,7 @@ public class MyPalWebClient
     readonly ChatClient _chat;
     readonly AudioClient _audio;
 
-    public MyPalWebClient(string apiKey = "")
+    public MyPalWebClient(string apiKey = "", bool hd = false)
     {
         if (string.IsNullOrEmpty (apiKey))
         {
@@ -23,7 +23,7 @@ public class MyPalWebClient
         }
         _client = new AzureOpenAIClient(new Uri("https://icropenaiservice2.openai.azure.com/"), new ApiKeyCredential(apiKey));
         _chat = _client.GetChatClient("icrgpt-4o");
-        _audio = _client.GetAudioClient("icrtts-hd");
+        _audio = _client.GetAudioClient(hd ? "icrtts-hd" : "icrtts");
     }
 
     public async Task<string> SendImageAsync(string filePath)
