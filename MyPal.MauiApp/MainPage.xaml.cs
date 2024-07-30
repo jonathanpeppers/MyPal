@@ -1,16 +1,20 @@
 ﻿using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Views;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 using MyPal.ClassLibrary;
 
 namespace MyPal.MauiApp;
 
 public partial class MainPage : ContentPage
 {
+    readonly TelemetryClient telemetry;
     readonly MyPalWebClient client = new();
     readonly CancellationTokenSource source = new();
 
-    public MainPage()
+    public MainPage(TelemetryClient telemetry)
     {
+        this.telemetry = telemetry;
         InitializeComponent();
     }
 
@@ -44,10 +48,22 @@ public partial class MainPage : ContentPage
     async void OnMediaCaptured(object sender, MediaCapturedEventArgs e)
     {
         Dispatcher.Dispatch(_camera.StopCameraPreview);
-        var result = await client.SendImageAsync(e.Media);
-        Console.WriteLine(result);
 
-        var stream = await client.TextToSpeechAsync(result, "Fable");
+        string result;
+        long length = e.Media.Length;
+        using (telemetry.StartOperation<RequestTelemetry>("sendimage"))
+        {
+            telemetry.TrackMetric(new MetricTelemetry("Image.ByteCount", length));
+            result = await client.SendImageAsync(e.Media);
+            telemetry.TrackMetric(new MetricTelemetry("Result.CharacterCount", result.Length));
+        }
+
+        Stream stream;
+        using (telemetry.StartOperation<RequestTelemetry>("tts"))
+        {
+            stream = await client.TextToSpeechAsync(result, "Fable");
+            telemetry.TrackMetric(new MetricTelemetry("Audio.ByteCount", stream.Length));
+        }
 
         await Dispatcher.DispatchAsync(async () =>
         {

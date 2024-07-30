@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Maui;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 
 namespace MyPal.MauiApp;
@@ -18,9 +19,18 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
+        builder.Services
+            .AddSingleton<MainPage>()
+            .AddSingleton<TelemetryClient>();
+
 #if DEBUG
-		builder.Logging.AddDebug();
+        builder.Logging.AddDebug();
 #endif
+        builder.Logging.AddApplicationInsights(
+            configureTelemetryConfiguration: (config) =>
+                config.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"),
+                configureApplicationInsightsLoggerOptions: (options) => { }
+        );
 
         return builder.Build();
     }
