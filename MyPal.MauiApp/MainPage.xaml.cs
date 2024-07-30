@@ -61,7 +61,12 @@ public partial class MainPage : ContentPage
     }
 
     void OnMediaCaptureFailed(object sender, MediaCaptureFailedEventArgs e) =>
-        DisplayAlert("Oops!", "Failed to capture image", "OK");
+        Dispatcher.DispatchAsync(async () =>
+        {
+            _indicator.IsRunning = false;
+            _button.IsEnabled = true;
+            await DisplayAlert("Oops!", "Failed to capture image", "OK");
+        });
 
     void Button_Clicked(object sender, EventArgs e)
     {
