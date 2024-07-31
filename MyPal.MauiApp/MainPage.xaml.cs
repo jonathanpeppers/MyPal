@@ -70,7 +70,7 @@ public partial class MainPage : ContentPage
             _indicator.IsRunning = false;
             _button.IsEnabled = true;
             await _camera.StartCameraPreview(source.Token);
-#if ANDROID
+#if ANDROID || IOS
             await Sound.Play(stream);
 #else
             await DisplayAlert("Result", result, "OK");

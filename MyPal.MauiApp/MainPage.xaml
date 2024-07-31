@@ -13,8 +13,9 @@
         <toolkit:CameraView
             x:Name="_camera"
             Grid.Row="1"
-            ImageCaptureResolution="200,150"
-            WidthRequest="200"
+            ImageCaptureResolution="150,200"
+            WidthRequest="150"
+            HeightRequest="200"
             BackgroundColor="Transparent"
             MediaCaptured="OnMediaCaptured"
             MediaCaptureFailed="OnMediaCaptureFailed"
