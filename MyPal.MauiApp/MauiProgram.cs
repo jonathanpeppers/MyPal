@@ -28,7 +28,7 @@ public static class MauiProgram
 #endif
         builder.Logging.AddApplicationInsights(
             configureTelemetryConfiguration: (config) =>
-                config.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"),
+                config.ConnectionString = AppContext.GetData("APPLICATIONINSIGHTS_CONNECTION_STRING") as string,
                 configureApplicationInsightsLoggerOptions: (options) => { }
         );
 

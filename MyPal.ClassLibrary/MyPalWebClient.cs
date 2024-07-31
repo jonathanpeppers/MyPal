@@ -11,8 +11,12 @@ public class MyPalWebClient
     readonly ChatClient _chat;
     readonly AudioClient _audio;
 
-    public MyPalWebClient(string apiKey = "", bool hd = false)
+    public MyPalWebClient(string? apiKey = "", bool hd = false)
     {
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            apiKey = AppContext.GetData("OPENAI_API_KEY") as string;
+        }
         if (string.IsNullOrEmpty (apiKey))
         {
             apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")!;
