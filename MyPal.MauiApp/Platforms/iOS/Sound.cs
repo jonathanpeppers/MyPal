@@ -19,7 +19,6 @@ class Sound
         player.Play();
         player.FinishedPlaying += (sender, e) =>
         {
-            player.Dispose();
             taskCompletionSource.SetResult(true);
         };
         await taskCompletionSource.Task;
