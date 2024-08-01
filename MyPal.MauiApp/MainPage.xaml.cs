@@ -79,6 +79,7 @@ public partial class MainPage : ContentPage
 
         await Dispatcher.DispatchAsync(async () =>
         {
+            _indicator.IsRunning = false;
             cancelAwake.Cancel();
 
 #if ANDROID || IOS
@@ -89,7 +90,6 @@ public partial class MainPage : ContentPage
             await DisplayAlert("Result", result, "OK");
 #endif
             _image.Source = ImageSource.FromFile("koala_idle.gif");
-            _indicator.IsRunning = false;
             _button.IsVisible = true;
             await _camera.StartCameraPreview(source.Token);
         });
