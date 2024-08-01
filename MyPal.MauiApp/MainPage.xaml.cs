@@ -3,6 +3,8 @@ using CommunityToolkit.Maui.Views;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using MyPal.ClassLibrary;
+using System.Diagnostics;
+using Xamarin.Google.Crypto.Tink.Subtle;
 
 namespace MyPal.MauiApp;
 
@@ -61,34 +63,49 @@ public partial class MainPage : ContentPage
     {
         Dispatcher.Dispatch(_camera.StopCameraPreview);
 
-        string result;
         long length = e.Media.Length;
-        using (telemetry.StartOperation<RequestTelemetry>("sendimage"))
+        telemetry.TrackMetric(new MetricTelemetry("Image.ByteCount", length));
+
+        // Record time to first audio playback
+        var sw = new Stopwatch();
+        sw.Start();
+
+        Task? task = null;
+        using (telemetry.StartOperation<RequestTelemetry>("sendimage-streaming"))
+        await foreach (var stream in client.SendImageStreaming(e.Media, "Fable"))
         {
-            telemetry.TrackMetric(new MetricTelemetry("Image.ByteCount", length));
-            result = await client.SendImageAsync(e.Media);
-            telemetry.TrackMetric(new MetricTelemetry("Result.CharacterCount", result.Length));
+            cancelAwake.Cancel();
+            telemetry.TrackMetric(new MetricTelemetry("Audio.ByteCount", stream.Length));
+
+            // Wait on the sound if still playing
+            if (task is not null)
+                await task;
+
+#if ANDROID || IOS
+            await Dispatcher.DispatchAsync(() =>
+            {
+                if (sw.IsRunning)
+                {
+                    sw.Stop();
+                    telemetry.TrackMetric(new MetricTelemetry("TimeToAudio", sw.ElapsedMilliseconds));
+                }
+
+                _image.Source = ImageSource.FromFile("koala_talk.gif");
+                _indicator.IsRunning = false;
+                task = Sound.Play(stream);
+            });
+#else
+            //TODO: implement Sound.Play() on other platforms
+            throw new NotImplementedException();
+#endif
         }
 
-        Stream stream;
-        using (telemetry.StartOperation<RequestTelemetry>("tts"))
-        {
-            stream = await client.TextToSpeechAsync(result, "Fable");
-            telemetry.TrackMetric(new MetricTelemetry("Audio.ByteCount", stream.Length));
-        }
+        // Wait on the last sound
+        if (task is not null)
+            await task;
 
         await Dispatcher.DispatchAsync(async () =>
         {
-            _indicator.IsRunning = false;
-            cancelAwake.Cancel();
-
-#if ANDROID || IOS
-            _image.Source = ImageSource.FromFile("koala_talk.gif");
-            await Sound.Play(stream);
-#else
-            //TODO: implement Sound.Play() on other platforms
-            await DisplayAlert("Result", result, "OK");
-#endif
             _image.Source = ImageSource.FromFile("koala_idle.gif");
             _button.IsVisible = true;
             await _camera.StartCameraPreview(source.Token);
