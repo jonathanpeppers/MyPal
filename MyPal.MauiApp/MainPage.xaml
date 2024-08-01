@@ -8,19 +8,24 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="60" />
             <RowDefinition />
+            <RowDefinition Height="200" />
         </Grid.RowDefinitions>
         <Button x:Name="_button" Text="Insult Me" Clicked="Button_Clicked" />
+        <ActivityIndicator x:Name="_indicator" IsRunning="False" />
+        <Image x:Name="_image" Grid.Row="1" Source="koala_yawn.gif" IsAnimationPlaying="True" />
         <toolkit:CameraView
             x:Name="_camera"
-            Grid.Row="1"
+            Grid.Row="2"
             ImageCaptureResolution="150,200"
+            HorizontalOptions="End"
+            VerticalOptions="End"
+            Margin="10"
             WidthRequest="150"
             HeightRequest="200"
             BackgroundColor="Transparent"
             MediaCaptured="OnMediaCaptured"
             MediaCaptureFailed="OnMediaCaptureFailed"
         />
-        <ActivityIndicator x:Name="_indicator" Grid.Row="1" IsRunning="False" />
     </Grid>
 
 </ContentPage>

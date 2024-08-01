@@ -8,6 +8,7 @@ class Sound
 {
     public static async Task Play(Stream stream)
     {
+        var taskCompletionSource = new TaskCompletionSource<bool>();
         var path = Path.Combine(Path.GetTempPath(), "media.mp3");
         using (var fileStream = File.Create(path))
             await stream.CopyToAsync(fileStream);
@@ -16,5 +17,11 @@ class Sound
             throw new Exception(error.LocalizedDescription);
         player.PrepareToPlay();
         player.Play();
+        player.FinishedPlaying += (sender, e) =>
+        {
+            player.Dispose();
+            taskCompletionSource.SetResult(true);
+        };
+        await taskCompletionSource.Task;
     }
 }

@@ -10,6 +10,7 @@ public partial class MainPage : ContentPage
 {
     readonly TelemetryClient telemetry;
     readonly MyPalWebClient client = new();
+    readonly CancellationTokenSource cancelAwake = new();
     readonly CancellationTokenSource source = new();
 
     public MainPage(TelemetryClient telemetry)
@@ -30,12 +31,23 @@ public partial class MainPage : ContentPage
             if (camera.Position == CameraPosition.Front)
             {
                 _camera.SelectedCamera = camera;
-                return;
+                goto KoalaIdle;
             }
         }
 
         // Then just grab first, if no front
         _camera.SelectedCamera = cameras.FirstOrDefault();
+
+    KoalaIdle:
+        try
+        {
+            await Task.Delay(6500, cancelAwake.Token);
+            _image.Source = ImageSource.FromFile("koala_idle.gif");
+        }
+        catch (TaskCanceledException)
+        {
+            // Expected
+        }
     }
 
     protected override void OnDisappearing()
@@ -68,10 +80,12 @@ public partial class MainPage : ContentPage
         await Dispatcher.DispatchAsync(async () =>
         {
             _indicator.IsRunning = false;
-            _button.IsEnabled = true;
+            _button.IsVisible = true;
             await _camera.StartCameraPreview(source.Token);
 #if ANDROID || IOS
+            _image.Source = ImageSource.FromFile("koala_talk.gif");
             await Sound.Play(stream);
+            _image.Source = ImageSource.FromFile("koala_idle.gif");
 #else
             await DisplayAlert("Result", result, "OK");
 #endif
@@ -82,15 +96,16 @@ public partial class MainPage : ContentPage
         Dispatcher.DispatchAsync(async () =>
         {
             _indicator.IsRunning = false;
-            _button.IsEnabled = true;
+            _button.IsVisible = true;
             await DisplayAlert("Oops!", "Failed to capture image", "OK");
             await _camera.StartCameraPreview(source.Token);
         });
 
     void Button_Clicked(object sender, EventArgs e)
     {
+        cancelAwake.Cancel();
         _indicator.IsRunning = true;
-        _button.IsEnabled = false;
+        _button.IsVisible = false;
         _ = _camera.CaptureImage(source.Token);
     }
 }
