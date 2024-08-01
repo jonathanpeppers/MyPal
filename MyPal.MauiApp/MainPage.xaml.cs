@@ -79,16 +79,19 @@ public partial class MainPage : ContentPage
 
         await Dispatcher.DispatchAsync(async () =>
         {
-            _indicator.IsRunning = false;
-            _button.IsVisible = true;
-            await _camera.StartCameraPreview(source.Token);
+            cancelAwake.Cancel();
+
 #if ANDROID || IOS
             _image.Source = ImageSource.FromFile("koala_talk.gif");
             await Sound.Play(stream);
-            _image.Source = ImageSource.FromFile("koala_idle.gif");
 #else
+            //TODO: implement Sound.Play() on other platforms
             await DisplayAlert("Result", result, "OK");
 #endif
+            _image.Source = ImageSource.FromFile("koala_idle.gif");
+            _indicator.IsRunning = false;
+            _button.IsVisible = true;
+            await _camera.StartCameraPreview(source.Token);
         });
     }
 
@@ -103,7 +106,6 @@ public partial class MainPage : ContentPage
 
     void Button_Clicked(object sender, EventArgs e)
     {
-        cancelAwake.Cancel();
         _indicator.IsRunning = true;
         _button.IsVisible = false;
         _ = _camera.CaptureImage(source.Token);
