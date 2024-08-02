@@ -8,7 +8,7 @@ class Sound
 {
     public static async Task Play(Stream stream)
     {
-        var taskCompletionSource = new TaskCompletionSource<bool>();
+        var taskCompletionSource = new TaskCompletionSource();
         var nsdata = NSData.FromStream(stream);
         if (nsdata is null)
         {
@@ -25,7 +25,7 @@ class Sound
         player.Play();
         player.FinishedPlaying += (sender, e) =>
         {
-            taskCompletionSource.SetResult(true);
+            taskCompletionSource.TrySetResult();
         };
         await taskCompletionSource.Task;
     }

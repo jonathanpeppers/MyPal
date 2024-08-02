@@ -7,7 +7,7 @@ class Sound
 {
     public static async Task Play(Stream stream)
     {
-        var taskCompletionSource = new TaskCompletionSource<bool>();
+        var taskCompletionSource = new TaskCompletionSource();
         var path = Path.Combine(Path.GetTempPath(), "media.mp3");
         using (var fileStream = File.Create(path))
             await stream.CopyToAsync(fileStream);
@@ -17,7 +17,7 @@ class Sound
         player.Start();
         player.Completion += (sender, e) =>
         {
-            taskCompletionSource.SetResult(true);
+            taskCompletionSource.TrySetResult();
         };
         await taskCompletionSource.Task;
     }
