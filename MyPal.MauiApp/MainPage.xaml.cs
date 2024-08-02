@@ -1,9 +1,9 @@
-﻿using System.Diagnostics;
-using CommunityToolkit.Maui.Core.Primitives;
+﻿using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Views;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using MyPal.ClassLibrary;
+using System.Diagnostics;
 
 namespace MyPal.MauiApp;
 
@@ -129,10 +129,8 @@ public partial class MainPage : ContentPage
     void OnMediaCaptureFailed(object sender, MediaCaptureFailedEventArgs e) =>
         Dispatcher.DispatchAsync(async () =>
         {
-            _indicator.IsRunning = false;
-            _button.IsVisible = true;
             await DisplayAlert("Oops!", "Failed to capture image", "OK");
-            await _camera.StartCameraPreview(source.Token);
+            await GoToIdle();
         });
 
     void Button_Clicked(object sender, EventArgs e)
