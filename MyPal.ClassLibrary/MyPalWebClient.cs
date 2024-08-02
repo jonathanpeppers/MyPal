@@ -92,10 +92,10 @@ public partial class MyPalWebClient
                 var match = PunctuationRegex().Match(text);
                 if (match.Success)
                 {
-                    string tts = text.Substring(0, match.Index + match.Length).Trim();
+                    string tts = text[..(match.Index + match.Length)].Trim();
                     Console.WriteLine("TTS: " + text);
                     yield return await TextToSpeechAsync(tts, voice);
-                    text = text.Substring(match.Index + match.Length);
+                    text = text[(match.Index + match.Length)..];
                 }
             }
         }
