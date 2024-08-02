@@ -12,14 +12,12 @@ class Sound
         var nsdata = NSData.FromStream(stream);
         if (nsdata is null)
         {
-            Console.WriteLine("Failed to create NSData from stream");
-            return;
+            throw new InvalidOperationException("Failed to create NSData from stream");
         }
         var player = new AVAudioPlayer(nsdata, "mp3", out var error);
         if (error is not null)
         {
-            Console.WriteLine($"Failed to create player: {error.LocalizedDescription}");
-            return;
+            throw new InvalidOperationException($"Failed to create player: {error.LocalizedDescription}");
         }
         player.PrepareToPlay();
         player.Play();

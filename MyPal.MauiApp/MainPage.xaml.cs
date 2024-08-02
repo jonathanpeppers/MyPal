@@ -108,6 +108,7 @@ public partial class MainPage : ContentPage
         catch (Exception exc)
         {
             telemetry.TrackException(exc);
+            Console.WriteLine("Error in OnMediaCaptured: {0}", exc);
             await Dispatcher.DispatchAsync(() => DisplayAlert("Oops!", "Failed to send image", "OK"));
         }
 
