@@ -60,52 +60,66 @@ public partial class MainPage : ContentPage
 
     async void OnMediaCaptured(object sender, MediaCapturedEventArgs e)
     {
-        Dispatcher.Dispatch(_camera.StopCameraPreview);
-
-        long length = e.Media.Length;
-        telemetry.TrackMetric(new MetricTelemetry("Image.ByteCount", length));
-
-        // Record time to first audio playback
-        var sw = new Stopwatch();
-        sw.Start();
-
-        Task? task = null;
-        using (telemetry.StartOperation<RequestTelemetry>("sendimage-streaming"))
-        await foreach (var stream in client.SendImageStreaming(e.Media, "Fable"))
+        try
         {
-            cancelAwake.Cancel();
-            telemetry.TrackMetric(new MetricTelemetry("Audio.ByteCount", stream.Length));
+            Dispatcher.Dispatch(_camera.StopCameraPreview);
 
-            // Wait on the sound if still playing
-            if (task is not null)
-                await task;
+            long length = e.Media.Length;
+            telemetry.TrackMetric(new MetricTelemetry("Image.ByteCount", length));
+
+            // Record time to first audio playback
+            var sw = new Stopwatch();
+            sw.Start();
+
+            Task? task = null;
+            using (telemetry.StartOperation<RequestTelemetry>("sendimage-streaming"))
+            await foreach (var stream in client.SendImageStreaming(e.Media, "Fable"))
+            {
+                cancelAwake.Cancel();
+                telemetry.TrackMetric(new MetricTelemetry("Audio.ByteCount", stream.Length));
+
+                // Wait on the sound if still playing
+                if (task is not null)
+                    await task;
 
 #if ANDROID || IOS
-            await Dispatcher.DispatchAsync(() =>
-            {
-                if (sw.IsRunning)
+                await Dispatcher.DispatchAsync(() =>
                 {
-                    sw.Stop();
-                    telemetry.TrackMetric(new MetricTelemetry("TimeToAudio", sw.ElapsedMilliseconds));
-                }
+                    if (sw.IsRunning)
+                    {
+                        sw.Stop();
+                        telemetry.TrackMetric(new MetricTelemetry("TimeToAudio", sw.ElapsedMilliseconds));
+                    }
 
-                _image.Source = ImageSource.FromFile("koala_talk.gif");
-                _indicator.IsRunning = false;
-                task = Sound.Play(stream);
-            });
+                    _image.Source = ImageSource.FromFile("koala_talk.gif");
+                    _indicator.IsRunning = false;
+                    task = Sound.Play(stream);
+                });
 #else
-            //TODO: implement Sound.Play() on other platforms
-            throw new NotImplementedException();
+                //TODO: implement Sound.Play() on other platforms
+                throw new NotImplementedException();
 #endif
+            }
+
+            // Wait on the last sound
+            if (task is not null)
+                await task;
+        }
+        catch (Exception exc)
+        {
+            telemetry.TrackException(exc);
+            await Dispatcher.DispatchAsync(() => DisplayAlert("Oops!", "Failed to send image", "OK"));
         }
 
-        // Wait on the last sound
-        if (task is not null)
-            await task;
+        await GoToIdle();
+    }
 
+    async Task GoToIdle()
+    {
         await Dispatcher.DispatchAsync(async () =>
         {
             _image.Source = ImageSource.FromFile("koala_idle.gif");
+            _indicator.IsRunning = false;
             _button.IsVisible = true;
             await _camera.StartCameraPreview(source.Token);
         });
