@@ -27,8 +27,8 @@ public partial class MyPalWebClient
             ArgumentNullException.ThrowIfNull(apiKey, nameof(apiKey));
         }
         _client = new AzureOpenAIClient(new Uri("https://icropenaiservice2.openai.azure.com/"), new ApiKeyCredential(apiKey));
-        _chat = _client.GetChatClient("icrgpt-4o");
-        _audio = _client.GetAudioClient(hd ? "icrtts-hd" : "icrtts");
+        _chat = _client.GetChatClient("gpt-4o");
+        _audio = _client.GetAudioClient(hd ? "tts-hd" : "tts");
     }
 
     public Task<string> SendImageAsync(string filePath)
