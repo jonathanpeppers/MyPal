@@ -133,10 +133,10 @@ public partial class MainPage : ContentPage
             await GoToIdle();
         });
 
-    void Button_Clicked(object sender, EventArgs e)
+    async void Button_Clicked(object sender, EventArgs e)
     {
         _indicator.IsRunning = true;
         _button.IsVisible = false;
-        _ = _camera.CaptureImage(source.Token);
+        await _camera.CaptureImage(source.Token);
     }
 }
