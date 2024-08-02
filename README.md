@@ -53,3 +53,37 @@ Create a `runtimeconfig.template.json` with the contents:
 ```
 
 `APPLICATIONINSIGHTS_CONNECTION_STRING` is only required for the .NET MAUI app.
+
+## Notes about Performance
+
+Originally, I made two requests:
+
+* `CompleteChatAsync()` from `gpt-4o`, returns text. Around 11 seconds!
+* `GenerateSpeechFromTextAsync()` from `tts-hd`, returns audio. Around 5 seconds!
+
+Some initial performance changes, I made:
+
+* Use a 150x200 image, which seems to be good enough in detail for
+  `gpt-4o` to read as input. Down to ~10 second request.
+
+* Use `tts` instead of `tts-hd`, it is faster but lower quality. Down
+  to a ~4 second request.
+
+This is still about 14 seconds, which is too slow for a real-time
+"pal" like I was trying to make.
+
+Next, I tried the streaming API for the initial request:
+
+* Call `CompleteChatStreamingAsync()` from `gpt-4o`.
+
+* When the first complete sentence is returned, start the audio
+  generation with `GenerateSpeechFromTextAsync()` from `tts`.
+
+This made me track a new metric, "time to first audio", which is
+around 9 seconds. This is still too slow for a real-time "pal", but
+I'm going with this implementation for now.
+
+The demos we see in ChatGPT videos are likely using a more powerful
+APIs we don't have access to yet:
+
+* https://www.youtube.com/live/DQacCB9tDaw
