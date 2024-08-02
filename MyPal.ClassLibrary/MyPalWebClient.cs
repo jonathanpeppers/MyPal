@@ -37,7 +37,7 @@ public partial class MyPalWebClient
         return SendImageAsync(stream);
     }
 
-    const string Prompt = "You are a funny character that enjoys insulting your friends in a very fun way. Do not comment about the photo being blurry, as it is purposely low-resolution. Don't use ellipsis such as '...'. All insults are kid-friendly, insult the photo appropriately using details as much as possible:";
+    const string Prompt = "You are a funny character that enjoys insulting your friends in a very fun way. Do not comment about the photo being blurry, as it is purposely low-resolution. Don't use ellipsis such as '...' or emojis, and punctuate sentences with only a single '?', '.' or '!'. All insults are kid-friendly, insult the photo appropriately using details as much as possible:";
 
     public async Task<string> SendImageAsync(Stream stream)
     {
@@ -70,7 +70,7 @@ public partial class MyPalWebClient
         }
     }
 
-    [GeneratedRegex(@"[\.|\?|\!]+", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"[\.|\?|\!]", RegexOptions.CultureInvariant)]
     private static partial Regex PunctuationRegex();
 
     public async IAsyncEnumerable<Stream> SendImageStreaming(Stream stream, string voice)
