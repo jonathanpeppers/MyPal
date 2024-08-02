@@ -1,10 +1,9 @@
-﻿using CommunityToolkit.Maui.Core.Primitives;
+﻿using System.Diagnostics;
+using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Views;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using MyPal.ClassLibrary;
-using System.Diagnostics;
-using Xamarin.Google.Crypto.Tink.Subtle;
 
 namespace MyPal.MauiApp;
 
