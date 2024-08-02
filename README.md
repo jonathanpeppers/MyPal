@@ -5,6 +5,8 @@ Pal", a friendly koala that insults you based on a selfie!
 
 ![Screenshot of MyPal application](assets/screenshot.png)
 
+https://github.com/user-attachments/assets/a58c7494-07f2-42d6-b639-f1e66fecc59e
+
 This sample runs on iOS and Android, but could be adapted for desktop
 in the future.
 
