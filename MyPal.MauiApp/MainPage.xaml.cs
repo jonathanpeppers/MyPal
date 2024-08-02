@@ -13,6 +13,7 @@ public partial class MainPage : ContentPage
     readonly MyPalWebClient client = new();
     readonly CancellationTokenSource cancelAwake = new();
     readonly CancellationTokenSource source = new();
+    bool _insult = true;
 
     public MainPage(TelemetryClient telemetry)
     {
@@ -73,7 +74,7 @@ public partial class MainPage : ContentPage
 
             Task? task = null;
             using (telemetry.StartOperation<RequestTelemetry>("sendimage-streaming"))
-            await foreach (var stream in client.SendImageStreaming(e.Media, "Fable"))
+            await foreach (var stream in client.SendImageStreaming(e.Media, "Fable", _insult))
             {
                 cancelAwake.Cancel();
                 telemetry.TrackMetric(new MetricTelemetry("Audio.ByteCount", stream.Length));
@@ -121,7 +122,8 @@ public partial class MainPage : ContentPage
         {
             _image.Source = ImageSource.FromFile("koala_idle.gif");
             _indicator.IsRunning = false;
-            _button.IsVisible = true;
+            _complimentButton.IsVisible =
+                _insultButton.IsVisible = true;
             await _camera.StartCameraPreview(source.Token);
         });
     }
@@ -133,10 +135,23 @@ public partial class MainPage : ContentPage
             await GoToIdle();
         });
 
-    async void Button_Clicked(object sender, EventArgs e)
+    async void Insult_Clicked(object sender, EventArgs e)
+    {
+        _insult = true;
+        await TakePhoto();
+    }
+
+    async void Compliment_Clicked(object sender, EventArgs e)
+    {
+        _insult = false;
+        await TakePhoto();
+    }
+
+    async Task TakePhoto()
     {
         _indicator.IsRunning = true;
-        _button.IsVisible = false;
+        _insultButton.IsVisible =
+            _complimentButton.IsVisible = false;
         await _camera.CaptureImage(source.Token);
     }
 }

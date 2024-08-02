@@ -7,7 +7,7 @@ var sw = new Stopwatch();
 sw.Start();
 int index = 0;
 TaskCompletionSource? source = null;
-await foreach (var stream in client.SendImageStreaming(@"D:\src\MyPal\assets\test.jpg", "Fable"))
+await foreach (var stream in client.SendImageStreaming(@"D:\src\MyPal\assets\test.jpg", "Fable", insult: true))
 {
     Console.WriteLine($"Time: {sw.ElapsedMilliseconds}ms");
     if (source != null)

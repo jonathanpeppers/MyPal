@@ -31,19 +31,19 @@ public partial class MyPalWebClient
         _audio = _client.GetAudioClient(hd ? "tts-hd" : "tts");
     }
 
-    public Task<string> SendImageAsync(string filePath)
+    public Task<string> SendImageAsync(string filePath, bool insult)
     {
         using var stream = File.OpenRead(filePath);
-        return SendImageAsync(stream);
+        return SendImageAsync(stream, insult);
     }
 
-    const string Prompt = "You are a funny character that enjoys insulting your friends in a very fun way. Do not comment about the photo being blurry, as it is purposely low-resolution. Don't use ellipsis such as '...' or emojis, and punctuate sentences with only a single '?', '.' or '!'. All insults are kid-friendly, insult the photo appropriately using details as much as possible:";
+    const string Prompt = "You are a funny character that enjoys {0}ing your friends in a very fun way. Do not comment about the photo being blurry, as it is purposely low-resolution. Don't use ellipsis such as '...' or emojis, and punctuate sentences with only a single '?', '.' or '!'. All {0}s are kid-friendly, {0} the photo appropriately using details as much as possible:";
 
-    public async Task<string> SendImageAsync(Stream stream)
+    public async Task<string> SendImageAsync(Stream stream, bool insult)
     {
         var data = await BinaryData.FromStreamAsync(stream);
         var result = await _chat.CompleteChatAsync([
-            new SystemChatMessage(Prompt),
+            new SystemChatMessage(string.Format(Prompt, insult ? "insult" : "compliment")),
             new UserChatMessage(ChatMessageContentPart.CreateImageMessageContentPart(data, "image/jpg", ImageChatMessageContentPartDetail.Auto)),
         ]);
         return result.Value.Content[0].ToString();
@@ -61,10 +61,10 @@ public partial class MyPalWebClient
         return result.Value.ToStream();
     }
 
-    public async IAsyncEnumerable<Stream> SendImageStreaming(string filePath, string voice)
+    public async IAsyncEnumerable<Stream> SendImageStreaming(string filePath, string voice, bool insult)
     {
         using var stream = File.OpenRead(filePath);
-        await foreach (var item in SendImageStreaming(stream, voice))
+        await foreach (var item in SendImageStreaming(stream, voice, insult))
         {
             yield return item;
         }
@@ -73,12 +73,12 @@ public partial class MyPalWebClient
     [GeneratedRegex(@"[\.|\?|\!]", RegexOptions.CultureInvariant)]
     private static partial Regex PunctuationRegex();
 
-    public async IAsyncEnumerable<Stream> SendImageStreaming(Stream stream, string voice)
+    public async IAsyncEnumerable<Stream> SendImageStreaming(Stream stream, string voice, bool insult)
     {
         var data = await BinaryData.FromStreamAsync(stream);
         string text = "";
         await foreach (StreamingChatCompletionUpdate result in _chat.CompleteChatStreamingAsync([
-            new SystemChatMessage(Prompt),
+            new SystemChatMessage(string.Format(Prompt, insult ? "insult" : "compliment")),
             new UserChatMessage(ChatMessageContentPart.CreateImageMessageContentPart(data, "image/jpg", ImageChatMessageContentPartDetail.Auto)),
         ]))
         {
