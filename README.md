@@ -1,7 +1,12 @@
 # MyPal
 
-Using omni-input LLMs to create "My Pal", a friencly koala that
-insults you based on a selfie!
+A .NET MAUI sample application that uses omni-input LLMs to create "My
+Pal", a friendly koala that insults you based on a selfie!
+
+![Screenshot of MyPal application](assets/screenshot.png)
+
+This sample runs on iOS and Android, but could be adapted for desktop
+in the future.
 
 ## Azure Setup
 
