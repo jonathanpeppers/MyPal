@@ -1,7 +1,5 @@
 ﻿using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Views;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
 using MyPal.ClassLibrary;
 using System.Diagnostics;
 
@@ -9,15 +7,13 @@ namespace MyPal.MauiApp;
 
 public partial class MainPage : ContentPage
 {
-    readonly TelemetryClient telemetry;
     readonly MyPalWebClient client = new();
     readonly CancellationTokenSource cancelAwake = new();
     readonly CancellationTokenSource source = new();
     bool _insult = true;
 
-    public MainPage(TelemetryClient telemetry)
+    public MainPage()
     {
-        this.telemetry = telemetry;
         InitializeComponent();
     }
 
@@ -66,18 +62,15 @@ public partial class MainPage : ContentPage
             Dispatcher.Dispatch(_camera.StopCameraPreview);
 
             long length = e.Media.Length;
-            telemetry.TrackMetric(new MetricTelemetry("Image.ByteCount", length));
 
             // Record time to first audio playback
             var sw = new Stopwatch();
             sw.Start();
 
             Task? task = null;
-            using (telemetry.StartOperation<RequestTelemetry>("sendimage-streaming"))
             await foreach (var stream in client.SendImageStreaming(e.Media, "Fable", _insult))
             {
                 cancelAwake.Cancel();
-                telemetry.TrackMetric(new MetricTelemetry("Audio.ByteCount", stream.Length));
 
                 // Wait on the sound if still playing
                 if (task is not null)
@@ -89,7 +82,6 @@ public partial class MainPage : ContentPage
                     if (sw.IsRunning)
                     {
                         sw.Stop();
-                        telemetry.TrackMetric(new MetricTelemetry("TimeToAudio", sw.ElapsedMilliseconds));
                     }
 
                     _image.Source = ImageSource.FromFile("koala_talk.gif");
@@ -108,7 +100,6 @@ public partial class MainPage : ContentPage
         }
         catch (Exception exc)
         {
-            telemetry.TrackException(exc);
             Console.WriteLine("Error in OnMediaCaptured: {0}", exc);
             await Dispatcher.DispatchAsync(() => DisplayAlert("Oops!", "Failed to send image", "OK"));
         }

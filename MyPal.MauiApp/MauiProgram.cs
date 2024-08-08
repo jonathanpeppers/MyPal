@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Maui;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 
 namespace MyPal.MauiApp;
@@ -20,17 +19,11 @@ public static class MauiProgram
             });
 
         builder.Services
-            .AddSingleton<MainPage>()
-            .AddSingleton<TelemetryClient>();
+            .AddSingleton<MainPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
-        builder.Logging.AddApplicationInsights(
-            configureTelemetryConfiguration: (config) =>
-                config.ConnectionString = AppContext.GetData("APPLICATIONINSIGHTS_CONNECTION_STRING") as string,
-                configureApplicationInsightsLoggerOptions: (options) => { }
-        );
 
         return builder.Build();
     }
