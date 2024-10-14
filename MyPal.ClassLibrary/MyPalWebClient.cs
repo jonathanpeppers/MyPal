@@ -1,6 +1,7 @@
 ﻿using Azure.AI.OpenAI;
 using OpenAI.Audio;
 using OpenAI.Chat;
+using OpenAI.RealtimeConversation;
 using System.ClientModel;
 using System.Text.RegularExpressions;
 
@@ -11,6 +12,7 @@ public partial class MyPalWebClient
     readonly AzureOpenAIClient _client;
     readonly ChatClient _chat;
     readonly AudioClient _audio;
+    readonly RealtimeConversationClient _realtime;
 
     public MyPalWebClient(string? apiKey = "", bool hd = false)
     {
@@ -29,6 +31,7 @@ public partial class MyPalWebClient
         _client = new AzureOpenAIClient(new Uri("https://icropenaiservice2.openai.azure.com/"), new ApiKeyCredential(apiKey));
         _chat = _client.GetChatClient("gpt-4o");
         _audio = _client.GetAudioClient(hd ? "tts-hd" : "tts");
+        _realtime = _client.GetRealtimeConversationClient("gpt-4o-realtime-preview");
     }
 
     public Task<string> SendImageAsync(string filePath, bool insult)
@@ -141,5 +144,58 @@ public partial class MyPalWebClient
         text = text.Trim();
         if (!string.IsNullOrEmpty(text))
             yield return await TextToSpeechAsync(text, voice);
+    }
+
+    /// <summary>
+    /// From: https://github.com/Azure-Samples/aoai-realtime-audio-sdk/blob/6b0382442f43b25f3ccb4f034a3d78d37b701a62/dotnet/samples/console-from-mic/Program.cs
+    /// </summary>
+    public async Task StartConversation()
+    {
+        var session = await _realtime.StartConversationSessionAsync();
+
+        await session.ConfigureSessionAsync(new ConversationSessionOptions
+        {
+            InputTranscriptionOptions = new ConversationInputTranscriptionOptions
+            {
+                Model = "whisper-1"
+            }
+        });
+
+        // With the session configured, we start processing commands received from the service.
+        await foreach (ConversationUpdate update in session.ReceiveUpdatesAsync())
+        {
+            if (update is ConversationSessionStartedUpdate sessionStarted)
+            {
+
+            }
+            else if (update is ConversationInputSpeechStartedUpdate speechStarted)
+            {
+
+            }
+            else if (update is ConversationInputSpeechFinishedUpdate speechFinished)
+            {
+
+            }
+            else if (update is ConversationInputTranscriptionFinishedUpdate transcriptionFinished)
+            {
+
+            }
+            else if (update is ConversationAudioDeltaUpdate deltaUpdate)
+            {
+
+            }
+            else if (update is ConversationOutputTranscriptionDeltaUpdate transcriptionDeltaUpdate)
+            {
+
+            }
+            else if (update is ConversationItemFinishedUpdate itemFinished)
+            {
+
+            }
+            else if (update is ConversationErrorUpdate error)
+            {
+
+            }
+        }
     }
 }
