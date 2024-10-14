@@ -44,21 +44,58 @@ public partial class MyPalWebClient
         var data = await BinaryData.FromStreamAsync(stream);
         var result = await _chat.CompleteChatAsync([
             new SystemChatMessage(string.Format(Prompt, insult ? "insult" : "compliment")),
-            new UserChatMessage(ChatMessageContentPart.CreateImageMessageContentPart(data, "image/jpg", ImageChatMessageContentPartDetail.Auto)),
+            new UserChatMessage(ChatMessageContentPart.CreateImagePart(data, "image/jpg", ChatImageDetailLevel.Auto)),
         ]);
-        return result.Value.Content[0].ToString();
+        return result.Value.Content[0].ToString() ?? "";
     }
 
     public string[] GetVoices()
     {
-        return Enum.GetNames<GeneratedSpeechVoice>();
+        return [
+            nameof(GeneratedSpeechVoice.Alloy),
+            nameof(GeneratedSpeechVoice.Echo),
+            nameof(GeneratedSpeechVoice.Fable),
+            nameof(GeneratedSpeechVoice.Nova),
+            nameof(GeneratedSpeechVoice.Onyx),
+            nameof(GeneratedSpeechVoice.Shimmer),
+        ];
     }
 
     public async Task<Stream> TextToSpeechAsync(string text, string voice)
     {
         text = text.Trim();
-        var result = await _audio.GenerateSpeechFromTextAsync(text, Enum.Parse<GeneratedSpeechVoice>(voice), new SpeechGenerationOptions { ResponseFormat = GeneratedSpeechFormat.Mp3 });
+        var result = await _audio.GenerateSpeechAsync(text, ToVoice(voice), new SpeechGenerationOptions { ResponseFormat = GeneratedSpeechFormat.Mp3 });
         return result.Value.ToStream();
+    }
+
+    static GeneratedSpeechVoice ToVoice(string voice)
+    {
+        GeneratedSpeechVoice speechVoice;
+        switch (voice)
+        {
+            case "Alloy":
+                speechVoice = GeneratedSpeechVoice.Alloy;
+                break;
+            case "Echo":
+                speechVoice = GeneratedSpeechVoice.Echo;
+                break;
+            case "Fable":
+                speechVoice = GeneratedSpeechVoice.Fable;
+                break;
+            case "Nova":
+                speechVoice = GeneratedSpeechVoice.Nova;
+                break;
+            case "Onyx":
+                speechVoice = GeneratedSpeechVoice.Onyx;
+                break;
+            case "Shimmer":
+                speechVoice = GeneratedSpeechVoice.Shimmer;
+                break;
+            default:
+                throw new InvalidOperationException($"Unable to find voice named: {voice}!");
+        }
+
+        return speechVoice;
     }
 
     public async IAsyncEnumerable<Stream> SendImageStreaming(string filePath, string voice, bool insult)
@@ -79,7 +116,7 @@ public partial class MyPalWebClient
         string text = "";
         await foreach (StreamingChatCompletionUpdate result in _chat.CompleteChatStreamingAsync([
             new SystemChatMessage(string.Format(Prompt, insult ? "insult" : "compliment")),
-            new UserChatMessage(ChatMessageContentPart.CreateImageMessageContentPart(data, "image/jpg", ImageChatMessageContentPartDetail.Auto)),
+            new UserChatMessage(ChatMessageContentPart.CreateImagePart(data, "image/jpg", ChatImageDetailLevel.Auto)),
         ]))
         {
             foreach (var item in result.ContentUpdate)
