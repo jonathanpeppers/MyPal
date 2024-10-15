@@ -13,21 +13,7 @@
         </Grid.RowDefinitions>
         <Button x:Name="_insultButton" Text="Insult Me" Clicked="Insult_Clicked" Margin="5" />
         <Button x:Name="_complimentButton" Text="Compliment Me" Clicked="Compliment_Clicked" Grid.Row="1" Margin="5" />
-        <ActivityIndicator x:Name="_indicator" IsRunning="False" Grid.RowSpan="2" />
         <Image x:Name="_image" Grid.Row="2" Source="koala_yawn.gif" IsAnimationPlaying="True" />
-        <toolkit:CameraView
-            x:Name="_camera"
-            Grid.Row="3"
-            ImageCaptureResolution="150,200"
-            HorizontalOptions="End"
-            VerticalOptions="End"
-            Margin="10"
-            WidthRequest="150"
-            HeightRequest="200"
-            BackgroundColor="Transparent"
-            MediaCaptured="OnMediaCaptured"
-            MediaCaptureFailed="OnMediaCaptureFailed"
-        />
     </Grid>
 
 </ContentPage>
