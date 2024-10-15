@@ -1,28 +1,53 @@
 ﻿using MyPal.ClassLibrary;
-using NetCoreAudio;
-using System.Diagnostics;
+using NAudio.Wave;
 
 var client = new MyPalWebClient();
-var sw = new Stopwatch();
-sw.Start();
-int index = 0;
-TaskCompletionSource? source = null;
-await foreach (var stream in client.SendImageStreaming(@"D:\src\MyPal\assets\test.jpg", "Fable", insult: true))
-{
-    Console.WriteLine($"Time: {sw.ElapsedMilliseconds}ms");
-    if (source != null)
-    {
-        await source.Task;
-    }
-    var path = @$"D:\Downloads\MyPal{index++}.mp3";
-    using (var fileStream = File.Create(path))
-    {
-           await stream.CopyToAsync(fileStream);
-    }
-    var player = new Player();
-    source = new TaskCompletionSource();
-    player.PlaybackFinished += (sender, e) => source.TrySetResult();
-    await player.Play(path);
-}
+
+await client.StartConversation(new Microphone(), new Speaker());
 
 Console.ReadLine();
+
+class Microphone : IMicrophone
+{
+    public Stream GetAudio()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class Speaker : ISpeaker, IDisposable
+{
+    readonly BufferedWaveProvider _waveProvider;
+    readonly WaveOutEvent _waveOutEvent;
+
+    public Speaker()
+    {
+        var outputAudioFormat = new WaveFormat(
+            rate: 24000,
+            bits: 16,
+            channels: 1);
+        _waveProvider = new(outputAudioFormat)
+        {
+            BufferDuration = TimeSpan.FromMinutes(2),
+        };
+        _waveOutEvent = new();
+        _waveOutEvent.Init(_waveProvider);
+        _waveOutEvent.Play();
+    }
+
+    public void Play(BinaryData data)
+    {
+        byte[] buffer = data.ToArray();
+        _waveProvider.AddSamples(buffer, 0, buffer.Length);
+    }
+
+    public void Stop()
+    {
+        _waveProvider.ClearBuffer();
+    }
+
+    public void Dispose()
+    {
+        _waveOutEvent.Dispose();
+    }
+}

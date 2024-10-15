@@ -149,7 +149,7 @@ public partial class MyPalWebClient
     /// <summary>
     /// From: https://github.com/Azure-Samples/aoai-realtime-audio-sdk/blob/6b0382442f43b25f3ccb4f034a3d78d37b701a62/dotnet/samples/console-from-mic/Program.cs
     /// </summary>
-    public async Task StartConversation()
+    public async Task StartConversation(IMicrophone microphone, ISpeaker speaker)
     {
         var session = await _realtime.StartConversationSessionAsync();
 
@@ -166,35 +166,44 @@ public partial class MyPalWebClient
         {
             if (update is ConversationSessionStartedUpdate sessionStarted)
             {
+                Console.WriteLine($"Starting session with {sessionStarted.Voice}...");
 
+                _ = Task.Run(() =>
+                {
+                    var audio = microphone.GetAudio();
+                    session.SendAudioAsync(audio);
+                });
             }
             else if (update is ConversationInputSpeechStartedUpdate speechStarted)
             {
-
+                Console.WriteLine("Start of speech detected...");
+                speaker.Stop();
             }
             else if (update is ConversationInputSpeechFinishedUpdate speechFinished)
             {
-
+                Console.WriteLine("End of speech detected...");
             }
             else if (update is ConversationInputTranscriptionFinishedUpdate transcriptionFinished)
             {
-
+                Console.WriteLine($"Transcription: {transcriptionFinished.Transcript}");
             }
             else if (update is ConversationAudioDeltaUpdate deltaUpdate)
             {
-
+                Console.WriteLine("Audio delta received, playing...");
+                speaker.Play(deltaUpdate.Delta);
             }
             else if (update is ConversationOutputTranscriptionDeltaUpdate transcriptionDeltaUpdate)
             {
-
+                Console.WriteLine($"Delta transcription: {transcriptionDeltaUpdate.Delta}");
             }
             else if (update is ConversationItemFinishedUpdate itemFinished)
             {
-
+                Console.WriteLine($"Finished running custom function: {itemFinished.FunctionName}");
             }
             else if (update is ConversationErrorUpdate error)
             {
-
+                Console.WriteLine($"Error: {error.GetRawContent()}");
+                throw new Exception($"{error.ErrorCode}: {error.ErrorMessage}");
             }
         }
     }
