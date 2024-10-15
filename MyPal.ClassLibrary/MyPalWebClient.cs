@@ -28,7 +28,7 @@ public partial class MyPalWebClient
         {
             ArgumentNullException.ThrowIfNull(apiKey, nameof(apiKey));
         }
-        _client = new AzureOpenAIClient(new Uri("https://icropenaiservice2.openai.azure.com/"), new ApiKeyCredential(apiKey));
+        _client = new AzureOpenAIClient(new Uri("https://mypalopenai.openai.azure.com/openai/realtime?api-version=2024-10-01-preview&deployment=gpt-4o-realtime-preview"), new ApiKeyCredential(apiKey));
         _chat = _client.GetChatClient("gpt-4o");
         _audio = _client.GetAudioClient(hd ? "tts-hd" : "tts");
         _realtime = _client.GetRealtimeConversationClient("gpt-4o-realtime-preview");
@@ -161,18 +161,22 @@ public partial class MyPalWebClient
             }
         });
 
+        void SendAudio()
+        {
+            _ = Task.Run(() =>
+            {
+                var audio = microphone.GetAudio();
+                session.SendAudioAsync(audio);
+            });
+        }
+
         // With the session configured, we start processing commands received from the service.
         await foreach (ConversationUpdate update in session.ReceiveUpdatesAsync())
         {
             if (update is ConversationSessionStartedUpdate sessionStarted)
             {
                 Console.WriteLine($"Starting session with {sessionStarted.Voice}...");
-
-                _ = Task.Run(() =>
-                {
-                    var audio = microphone.GetAudio();
-                    session.SendAudioAsync(audio);
-                });
+                SendAudio();
             }
             else if (update is ConversationInputSpeechStartedUpdate speechStarted)
             {
@@ -198,7 +202,15 @@ public partial class MyPalWebClient
             }
             else if (update is ConversationItemFinishedUpdate itemFinished)
             {
-                Console.WriteLine($"Finished running custom function: {itemFinished.FunctionName}");
+                if (!string.IsNullOrEmpty(itemFinished.FunctionName))
+                {
+                    Console.WriteLine($"Finished running custom function: {itemFinished.FunctionName}");
+                }
+                else
+                {
+                    Console.WriteLine("Continuing conversation...");
+                }
+                SendAudio();
             }
             else if (update is ConversationErrorUpdate error)
             {
