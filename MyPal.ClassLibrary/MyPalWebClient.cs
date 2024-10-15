@@ -149,12 +149,14 @@ public partial class MyPalWebClient
     /// <summary>
     /// From: https://github.com/Azure-Samples/aoai-realtime-audio-sdk/blob/6b0382442f43b25f3ccb4f034a3d78d37b701a62/dotnet/samples/console-from-mic/Program.cs
     /// </summary>
-    public async Task StartConversation(IMicrophone microphone, ISpeaker speaker)
+    public async Task StartConversation(IMicrophone microphone, ISpeaker speaker, bool insult = true)
     {
         var session = await _realtime.StartConversationSessionAsync();
 
         await session.ConfigureSessionAsync(new ConversationSessionOptions
         {
+            Instructions = string.Format("You are a funny character that enjoys {0}ing your friends in a very fun way. All {0}s are kid-friendly, {0} me based on my comments.", insult ? "insult" : "compliment"),
+            Temperature = 1,
             InputTranscriptionOptions = new ConversationInputTranscriptionOptions
             {
                 Model = "whisper-1"
