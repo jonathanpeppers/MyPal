@@ -1,6 +1,6 @@
-﻿using CommunityToolkit.Maui;
-using Microsoft.ApplicationInsights;
+﻿using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
+using MyPal.ClassLibrary;
 
 namespace MyPal.MauiApp;
 
@@ -11,8 +11,6 @@ public static class MauiProgram
         var builder = Microsoft.Maui.Hosting.MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
-            .UseMauiCommunityToolkit()
-            .UseMauiCommunityToolkitCamera()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -22,6 +20,12 @@ public static class MauiProgram
         builder.Services
             .AddSingleton<MainPage>()
             .AddSingleton<TelemetryClient>();
+
+#if WINDOWS
+        builder.Services
+            .AddSingleton<IMicrophone, NAudioMicrophone>()
+            .AddSingleton<ISpeaker, NAudioSpeaker>();
+#endif
 
 #if DEBUG
         builder.Logging.AddDebug();
