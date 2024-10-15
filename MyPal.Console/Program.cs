@@ -1,5 +1,6 @@
 ﻿using MyPal.ClassLibrary;
 using NAudio.Wave;
+using System.Collections.Concurrent;
 
 var client = new MyPalWebClient();
 
@@ -9,53 +10,61 @@ Console.ReadLine();
 
 class Microphone : IMicrophone
 {
-    const int SAMPLES_PER_SECOND = 24000;
-    const int BYTES_PER_SAMPLE = 2;
-    const int CHANNELS = 1;
-
     readonly WaveInEvent _waveInEvent;
-    readonly byte[] _buffer = new byte[BYTES_PER_SAMPLE * SAMPLES_PER_SECOND * CHANNELS * 10];
-    readonly object _bufferLock = new();
-    int _position = 0;
+    BufferStream _stream = new();
 
     public Microphone()
     {
         _waveInEvent = new()
         {
-            WaveFormat = new WaveFormat(SAMPLES_PER_SECOND, BYTES_PER_SAMPLE * 8, CHANNELS),
+            WaveFormat = new WaveFormat(rate: 24000, bits: 2 * 8, channels: 1)
         };
         _waveInEvent.DataAvailable += (_, e) =>
         {
-            lock (_bufferLock)
-            {
-                int bytesToCopy = e.BytesRecorded;
-                if (_position + bytesToCopy >= _buffer.Length)
-                {
-                    int bytesToCopyBeforeWrap = _buffer.Length - _position;
-                    Array.Copy(e.Buffer, 0, _buffer, _position, bytesToCopyBeforeWrap);
-                    bytesToCopy -= bytesToCopyBeforeWrap;
-                    _position = 0;
-                }
-                Array.Copy(e.Buffer, e.BytesRecorded - bytesToCopy, _buffer, _position, bytesToCopy);
-                _position += bytesToCopy;
-            }
+            _stream.Enqueue(e.Buffer);
         };
         _waveInEvent.StartRecording();
     }
 
-    public Stream GetAudio()
+    public Stream GetAudio() => _stream;
+}
+
+class BufferStream : Stream
+{
+    ConcurrentQueue<byte[]> _buffers = new();
+
+    public override bool CanRead => true;
+
+    public override bool CanSeek => false;
+
+    public override bool CanWrite => false;
+
+    public override long Length => throw new NotImplementedException();
+
+    public override long Position { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public override void Flush() => throw new NotImplementedException();
+
+    public void Enqueue(byte[] buffer) => _buffers.Enqueue(buffer);
+
+    public override int Read(byte[] buffer, int offset, int count)
     {
-        // Wait until the buffer is at least half full
-        while (_position < _buffer.Length / 2)
+        byte[]? bytes;
+        while (!_buffers.TryDequeue(out bytes))
         {
             Thread.Sleep(100);
         }
 
-        lock (_bufferLock)
-        {
-            return new MemoryStream(_buffer, 0, _position);
-        }
+        int length = Math.Min(bytes.Length, count);
+        Array.Copy(bytes, 0, buffer, offset, length);
+        return length;
     }
+
+    public override long Seek(long offset, SeekOrigin origin) => throw new NotImplementedException();
+
+    public override void SetLength(long value) => throw new NotImplementedException();
+
+    public override void Write(byte[] buffer, int offset, int count) => throw new NotImplementedException();
 }
 
 class Speaker : ISpeaker, IDisposable

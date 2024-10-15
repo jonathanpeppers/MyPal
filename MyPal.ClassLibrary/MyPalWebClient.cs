@@ -161,22 +161,18 @@ public partial class MyPalWebClient
             }
         });
 
-        void SendAudio()
-        {
-            _ = Task.Run(() =>
-            {
-                var audio = microphone.GetAudio();
-                session.SendAudioAsync(audio);
-            });
-        }
-
         // With the session configured, we start processing commands received from the service.
         await foreach (ConversationUpdate update in session.ReceiveUpdatesAsync())
         {
             if (update is ConversationSessionStartedUpdate sessionStarted)
             {
                 Console.WriteLine($"Starting session with {sessionStarted.Voice}...");
-                SendAudio();
+
+                _ = Task.Run(() =>
+                {
+                    var audio = microphone.GetAudio();
+                    session.SendAudioAsync(audio);
+                });
             }
             else if (update is ConversationInputSpeechStartedUpdate speechStarted)
             {
@@ -210,7 +206,6 @@ public partial class MyPalWebClient
                 {
                     Console.WriteLine("Continuing conversation...");
                 }
-                SendAudio();
             }
             else if (update is ConversationErrorUpdate error)
             {
