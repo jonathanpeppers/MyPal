@@ -23,12 +23,19 @@ class AndroidMicrophone : Java.Lang.Object, IMicrophone, MediaRecorder.IOnInfoLi
         }
     }
 
-    readonly MediaRecorder _recorder;
     readonly QueuedStream _stream = new();
-    string _currentFile = Path.GetTempFileName();
+    MediaRecorder? _recorder;
+    string? _currentFile;
 
-    public AndroidMicrophone()
+    public async void Start()
     {
+        await CheckPermission();
+        StartInternal();
+    }
+
+    void StartInternal()
+    {
+        _currentFile = Path.GetTempFileName();
         if (OperatingSystem.IsAndroidVersionAtLeast(31))
         {
             _recorder = new(Android.App.Application.Context);
@@ -38,8 +45,8 @@ class AndroidMicrophone : Java.Lang.Object, IMicrophone, MediaRecorder.IOnInfoLi
             _recorder = new();
         }
         _recorder.SetAudioSource(AudioSource.Mic);
-        _recorder.SetOutputFormat(OutputFormat.Default);
-        _recorder.SetAudioEncoder(AudioEncoder.Default);
+        _recorder.SetOutputFormat((OutputFormat)(int)Encoding.Pcm16bit);
+        _recorder.SetAudioEncoder(AudioEncoder.Aac);
         _recorder.SetAudioSamplingRate(24000);
         _recorder.SetAudioEncodingBitRate(2 * 8);
         _recorder.SetAudioChannels(1);
@@ -48,12 +55,6 @@ class AndroidMicrophone : Java.Lang.Object, IMicrophone, MediaRecorder.IOnInfoLi
         _recorder.SetMaxDuration(max_duration_ms: 3000);
         _recorder.SetOutputFile(_currentFile);
         _recorder.Prepare();
-    }
-
-    public async void Start()
-    {
-        await CheckPermission();
-
         _recorder.Start();
     }
 
@@ -63,19 +64,21 @@ class AndroidMicrophone : Java.Lang.Object, IMicrophone, MediaRecorder.IOnInfoLi
     {
         Console.WriteLine($"{nameof(AndroidMicrophone)}, {nameof(OnInfo)}: {what}");
 
+        ArgumentNullException.ThrowIfNull(_recorder);
+        ArgumentNullException.ThrowIfNull(_currentFile);
+
         if (what == MediaRecorderInfo.MaxFilesizeApproaching ||
             what == MediaRecorderInfo.MaxFilesizeReached ||
             what == MediaRecorderInfo.MaxDurationReached)
         {
             // Stop & enqueue the file
             _recorder.Stop();
+            _recorder.Release();
             using var file = File.OpenRead(_currentFile);
             _stream.Enqueue(file);
 
             // Start the next file
-            _recorder.SetOutputFile(_currentFile = Path.GetTempFileName());
-            _recorder.Prepare();
-            _recorder.Start();
+            StartInternal();
         }
     }
 
