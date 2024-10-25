@@ -1,6 +1,5 @@
 ﻿using MyPal.ClassLibrary;
 using Plugin.Maui.Audio;
-using static Microsoft.Maui.ApplicationModel.Permissions;
 
 namespace MyPal.MauiApp;
 
@@ -26,14 +25,14 @@ class MauiMicrophone : IMicrophone
 
     async Task CheckPermission()
     {
-        PermissionStatus status = await Permissions.CheckStatusAsync<Microphone>();
+        PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.Microphone>();
         if (status == PermissionStatus.Denied && OperatingSystem.IsIOS())
         {
             throw new Exception("Microphone permission is required!");
         }
         else if (status != PermissionStatus.Granted)
         {
-            status = await Permissions.RequestAsync<Microphone>();
+            status = await Permissions.RequestAsync<Permissions.Microphone>();
 
             if (status != PermissionStatus.Granted)
                 throw new Exception("Microphone permission is required!");
