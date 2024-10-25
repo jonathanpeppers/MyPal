@@ -51,6 +51,8 @@ public partial class MyPalWebClient
         // With the session configured, we start processing commands received from the service.
         await foreach (ConversationUpdate update in session.ReceiveUpdatesAsync())
         {
+            Console.WriteLine($"Received update: {update}");
+
             if (update is ConversationSessionStartedUpdate sessionStarted)
             {
                 Debug.WriteLine($"Starting session with {sessionStarted.Voice}...");

@@ -40,6 +40,9 @@ class AndroidMicrophone : Java.Lang.Object, IMicrophone, MediaRecorder.IOnInfoLi
         _recorder.SetAudioSource(AudioSource.Mic);
         _recorder.SetOutputFormat(OutputFormat.Default);
         _recorder.SetAudioEncoder(AudioEncoder.Default);
+        _recorder.SetAudioSamplingRate(24000);
+        _recorder.SetAudioEncodingBitRate(2 * 8);
+        _recorder.SetAudioChannels(1);
         _recorder.SetOnInfoListener(this);
         _recorder.SetOnErrorListener(this);
         _recorder.SetMaxDuration(max_duration_ms: 3000);
