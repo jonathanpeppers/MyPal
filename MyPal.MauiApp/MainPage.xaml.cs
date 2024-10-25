@@ -13,6 +13,7 @@ public partial class MainPage : ContentPage, ICharacter
     readonly ISpeaker _speaker;
     readonly CancellationTokenSource _cancelAwake = new();
     readonly CancellationTokenSource _source = new();
+    bool _idle = true;
     bool _insult = true;
 
     public MainPage(TelemetryClient telemetry, IMicrophone microphone, ISpeaker speaker)
@@ -30,7 +31,10 @@ public partial class MainPage : ContentPage, ICharacter
         try
         {
             await Task.Delay(6500, _cancelAwake.Token);
-            _image.Source = ImageSource.FromFile("koala_idle.gif");
+            if (_idle)
+            {
+                _image.Source = ImageSource.FromFile("koala_idle.gif");
+            }
         }
         catch (TaskCanceledException)
         {
@@ -66,6 +70,10 @@ public partial class MainPage : ContentPage, ICharacter
 
     public async void StartTalking()
     {
+        if (!_idle)
+            return;
+        _idle = false;
+
         await Dispatcher.DispatchAsync(() =>
         {
             _image.Source = ImageSource.FromFile("koala_talk.gif");
@@ -74,6 +82,10 @@ public partial class MainPage : ContentPage, ICharacter
 
     public async void Idle()
     {
+        if (_idle)
+            return;
+        _idle = true;
+
         await Dispatcher.DispatchAsync(() =>
         {
             _image.Source = ImageSource.FromFile("koala_idle.gif");
