@@ -8,7 +8,7 @@ namespace MyPal.ClassLibrary;
 public class NAudioMicrophone : IMicrophone
 {
     readonly WaveInEvent _waveInEvent;
-    QueuedStream _stream = new();
+    readonly QueuedStream _stream = new();
 
     public NAudioMicrophone()
     {

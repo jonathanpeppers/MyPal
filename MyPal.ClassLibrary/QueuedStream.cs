@@ -19,6 +19,16 @@ public class QueuedStream : Stream
     public override void Flush() => throw new NotImplementedException();
 
     /// <summary>
+    /// Convenience method to pass a stream to the queue
+    /// </summary>
+    public void Enqueue(Stream stream)
+    {
+        byte[] buffer = new byte[stream.Length];
+        stream.Read(buffer, 0, buffer.Length);
+        Enqueue(buffer);
+    }
+
+    /// <summary>
     /// Main entry point for an IMicrophone to pass byte arrays to
     /// </summary>
     public void Enqueue(byte[] buffer) => _buffers.Enqueue(buffer);
