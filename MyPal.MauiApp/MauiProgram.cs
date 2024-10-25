@@ -26,21 +26,22 @@ public static class MauiProgram
         builder.Services
             .AddSingleton<IMicrophone, NAudioMicrophone>()
             .AddSingleton<ISpeaker, NAudioSpeaker>();
+#elif ANDROID
+        builder.AddAudio();
+        builder.Services
+            .AddSingleton<IMicrophone, AndroidMicrophone>()
+            .AddSingleton<ISpeaker, MauiSpeaker>();
 #else
         builder.AddAudio(
             playbackOptions =>
             {
-#if IOS || MACCATALYST
                 playbackOptions.Category = AVFoundation.AVAudioSessionCategory.Playback;
-#endif
             },
             recordingOptions =>
             {
-#if IOS || MACCATALYST
                 recordingOptions.Category = AVFoundation.AVAudioSessionCategory.Record;
                 recordingOptions.Mode = AVFoundation.AVAudioSessionMode.Default;
                 recordingOptions.CategoryOptions = AVFoundation.AVAudioSessionCategoryOptions.MixWithOthers;
-#endif
             });
 
         builder.Services

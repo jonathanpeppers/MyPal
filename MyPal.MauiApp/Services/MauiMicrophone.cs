@@ -24,10 +24,7 @@ class MauiMicrophone : IMicrophone
         });
     }
 
-    /// <summary>
-    /// NOTE: this is the best you can do with this plugin, record 3 seconds, queue, etc.
-    /// </summary>
-    public async void Start()
+    async Task CheckPermission()
     {
         PermissionStatus status = await Permissions.CheckStatusAsync<Microphone>();
         if (status == PermissionStatus.Denied && OperatingSystem.IsIOS())
@@ -41,6 +38,14 @@ class MauiMicrophone : IMicrophone
             if (status != PermissionStatus.Granted)
                 throw new Exception("Microphone permission is required!");
         }
+    }
+
+    /// <summary>
+    /// NOTE: this is the best you can do with this plugin, record 3 seconds, queue, etc.
+    /// </summary>
+    public async void Start()
+    {
+        await CheckPermission();
 
         while (true)
         {
