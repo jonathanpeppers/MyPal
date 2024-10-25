@@ -22,14 +22,12 @@ class MauiMicrophone : IMicrophone
             Category = AVFoundation.AVAudioSessionCategory.PlayAndRecord
 #endif
         });
-
-        Run();
     }
 
     /// <summary>
     /// NOTE: this is the best you can do with this plugin, record 3 seconds, queue, etc.
     /// </summary>
-    async void Run()
+    public async void Start()
     {
         PermissionStatus status = await Permissions.CheckStatusAsync<Microphone>();
         if (status == PermissionStatus.Denied && OperatingSystem.IsIOS())

@@ -152,6 +152,8 @@ public partial class MyPalWebClient
     /// </summary>
     public async Task StartConversation(IMicrophone microphone, ISpeaker speaker, ICharacter? character = null, bool insult = true)
     {
+        microphone.Start();
+
         var session = await _realtime.StartConversationSessionAsync();
 
         await session.ConfigureSessionAsync(new ConversationSessionOptions

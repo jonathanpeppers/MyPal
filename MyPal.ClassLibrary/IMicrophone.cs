@@ -2,5 +2,7 @@
 
 public interface IMicrophone
 {
+    void Start();
+
     Stream GetAudio();
 }

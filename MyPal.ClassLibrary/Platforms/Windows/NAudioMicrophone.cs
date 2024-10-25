@@ -20,8 +20,9 @@ public class NAudioMicrophone : IMicrophone
         {
             _stream.Enqueue(e.Buffer);
         };
-        _waveInEvent.StartRecording();
     }
+
+    public void Start() => _waveInEvent.StartRecording();
 
     public Stream GetAudio() => _stream;
 }
