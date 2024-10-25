@@ -1,11 +1,10 @@
 ﻿using Android.Media;
-using Android.Runtime;
 using MyPal.ClassLibrary;
 using static Microsoft.Maui.ApplicationModel.Permissions;
 
 namespace MyPal.MauiApp;
 
-class AndroidMicrophone : Java.Lang.Object, IMicrophone, MediaRecorder.IOnInfoListener, MediaRecorder.IOnErrorListener
+class AndroidMicrophone : IMicrophone
 {
     async Task CheckPermission()
     {
@@ -23,67 +22,43 @@ class AndroidMicrophone : Java.Lang.Object, IMicrophone, MediaRecorder.IOnInfoLi
         }
     }
 
+    const int SAMPLING_RATE_IN_HZ = 24000;
+    const ChannelIn CHANNELS = ChannelIn.Mono;
+    const Encoding FORMAT = Encoding.Pcm16bit;
+    const int BUFFER_SIZE = 16 * 1024;
+
     readonly QueuedStream _stream = new();
-    MediaRecorder? _recorder;
-    string? _currentFile;
+    readonly AudioRecord _record;
+    //readonly int _bufferSize;
+
+    public AndroidMicrophone()
+    {
+        //_bufferSize = AudioRecord.GetMinBufferSize(SAMPLING_RATE_IN_HZ, CHANNELS, FORMAT) * 2;
+        _record = new AudioRecord(AudioSource.Mic, SAMPLING_RATE_IN_HZ, CHANNELS, FORMAT, BUFFER_SIZE);
+    }
 
     public async void Start()
     {
         await CheckPermission();
-        StartInternal();
-    }
+        _record.StartRecording();
 
-    void StartInternal()
-    {
-        _currentFile = Path.GetTempFileName();
-        if (OperatingSystem.IsAndroidVersionAtLeast(31))
+        _ = Task.Run(() =>
         {
-            _recorder = new(Android.App.Application.Context);
-        }
-        else
-        {
-            _recorder = new();
-        }
-        _recorder.SetAudioSource(AudioSource.Mic);
-        _recorder.SetOutputFormat((OutputFormat)(int)Encoding.Pcm16bit);
-        _recorder.SetAudioEncoder(AudioEncoder.Aac);
-        _recorder.SetAudioSamplingRate(24000);
-        _recorder.SetAudioEncodingBitRate(2 * 8);
-        _recorder.SetAudioChannels(1);
-        _recorder.SetOnInfoListener(this);
-        _recorder.SetOnErrorListener(this);
-        _recorder.SetMaxDuration(max_duration_ms: 3000);
-        _recorder.SetOutputFile(_currentFile);
-        _recorder.Prepare();
-        _recorder.Start();
+            while (true)
+            {
+                var bytes = new byte[BUFFER_SIZE];
+                int bytesRead = _record.Read(bytes, 0, BUFFER_SIZE);
+                if (bytesRead < 0)
+                {
+                    throw new Exception($"Error reading audio, error code: {bytesRead}");
+                }
+                if (bytesRead > 0)
+                {
+                    _stream.Enqueue(bytes);
+                }
+            }
+        });
     }
 
     public System.IO.Stream GetAudio() => _stream;
-
-    public void OnInfo(MediaRecorder? mr, [GeneratedEnum] MediaRecorderInfo what, int extra)
-    {
-        Console.WriteLine($"{nameof(AndroidMicrophone)}, {nameof(OnInfo)}: {what}");
-
-        ArgumentNullException.ThrowIfNull(_recorder);
-        ArgumentNullException.ThrowIfNull(_currentFile);
-
-        if (what == MediaRecorderInfo.MaxFilesizeApproaching ||
-            what == MediaRecorderInfo.MaxFilesizeReached ||
-            what == MediaRecorderInfo.MaxDurationReached)
-        {
-            // Stop & enqueue the file
-            _recorder.Stop();
-            _recorder.Release();
-            using var file = File.OpenRead(_currentFile);
-            _stream.Enqueue(file);
-
-            // Start the next file
-            StartInternal();
-        }
-    }
-
-    public void OnError(MediaRecorder? mr, [GeneratedEnum] MediaRecorderError what, int extra)
-    {
-        Console.WriteLine($"{nameof(AndroidMicrophone)}, {nameof(OnError)}: {what}");
-    }
 }
