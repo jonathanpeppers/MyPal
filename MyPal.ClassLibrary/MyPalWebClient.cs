@@ -1,10 +1,7 @@
 ﻿using Azure.AI.OpenAI;
-using OpenAI.Audio;
-using OpenAI.Chat;
 using OpenAI.RealtimeConversation;
 using System.ClientModel;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 
 namespace MyPal.ClassLibrary;
 
